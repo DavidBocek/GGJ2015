@@ -45,13 +45,6 @@ public class Movement : MonoBehaviour
 
 		gameObject.GetComponentInChildren<Camera>().transform.Rotate (Vector3.right, -.5f*mouseY*mouseSens);
 
-		if(Input.GetButtonDown("Fire1"))
-		{
-			GameObject.Instantiate(burret, muzzle.position, transform.rotation); 
-		}
-
-		groundRayBool = Physics.Raycast (transform.position, Vector3.down, playerColl.height/2.0f + .25f);
-
 	}
 
 	void FixedUpdate()
@@ -101,7 +94,7 @@ public class Movement : MonoBehaviour
 		Debug.Log (isFalling + " " + onStairs);
 
 		
-		isFalling = !groundRayBool && !onStairs;
+		isFalling = !Physics.Raycast (transform.position, Vector3.down, playerColl.height/2.0f + .25f) && !onStairs;
 
 	}
 
