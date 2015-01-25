@@ -6,6 +6,7 @@ public class Keypad : MonoBehaviour {
 
 	public DoubleDoorController doorController;
 	public GameObject keypadGUIObj;
+	public GameObject[] keypadGUIObjs;
 	public int keyValue;
 	public AudioClip incorrectClip;
 	public AudioClip correctClip;
@@ -16,10 +17,8 @@ public class Keypad : MonoBehaviour {
 	void OnPlayerClicked(){
 		if (!GUIActive){
 			keypadGUIObj.GetComponent<KeypadGUI>().Attach(gameObject);
-			foreach (Transform transform in keypadGUIObj.GetComponentsInChildren<Transform>()){
-				if (!transform.gameObject == keypadGUIObj){
-					//
-				}
+			foreach (GameObject obj in keypadGUIObjs){
+				obj.SetActive(true);
 			}
 			GUIActive = true;
 			GameObject.FindWithTag("Player").GetComponent<Movement>().EnterGUIState();
@@ -40,8 +39,8 @@ public class Keypad : MonoBehaviour {
 	}
 
 	public void DeactivateGUI(){
-		foreach (Transform transform in keypadGUIObj.GetComponentsInChildren<Transform>()){
-			if (!transform.gameObject == keypadGUIObj) transform.gameObject.SetActive(false);
+		foreach (GameObject obj in keypadGUIObjs){
+			obj.SetActive(false);
 		}
 		GUIActive = false;
 		GameObject.FindWithTag("Player").GetComponent<Movement>().ExitGUIState();

@@ -8,8 +8,9 @@ public class KeypadGUI : MonoBehaviour {
 	private int currentNumber = 0;
 
 	public void InputKeyValueGUI(){
-		System.Int32.TryParse(GetComponent<InputField>().textComponent.text, out currentNumber);
-		GetComponent<InputField>().textComponent.text = "0000";
+		System.Int32.TryParse(GetComponentInChildren<InputField>().textComponent.text, out currentNumber);
+		GetComponentInChildren<InputField>().textComponent.text = "0000";
+		GetComponentInChildren<InputField>().MoveTextStart(false);
 		attachedKeypad.InputKeyValue(currentNumber);
 		Detach();
 	}

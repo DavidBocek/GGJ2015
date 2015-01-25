@@ -7,6 +7,10 @@ public class DoubleDoorController : MonoBehaviour {
 	public GameObject door2;
 	public Transform door1Final, door2Final;
 	public bool requiresKey = false;
+	public AudioClip openClip, closeClip;
+	public GameObject objectToSpawn;
+	public AudioClip stingerClip;
+	public float stingerDelay;
 	private Vector3 door1Init, door2Init;
 	private Vector3 finalPos1, finalPos2;
 	private bool canLerp;
@@ -27,27 +31,22 @@ public class DoubleDoorController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
+		if (requiresKey && !hasKey){
+			return;
+		}
+		if(door1.transform.position == finalPos1 && count == 0)
+		{
+			if(canLerp){
+				StartCoroutine("LerpClosed");
+			}
+		}
+		if(door1.transform.position == door1Init && count > 0)
+		{
+			if(canLerp){
+				StartCoroutine("LerpOpen");
+			}
+		}
 
-		if(Mathf.Abs(door1.transform.position.y - finalPos1.y) < .05 && count == 0)
-		{
-			if(canLerp){
-				if (requiresKey && !hasKey){
-					//nothing yet?
-				} else {
-					StartCoroutine("LerpClosed");
-				}
-			}
-		}
-		if(Mathf.Abs(door1.transform.position.y - door1Init.y) < .05 && count > 0)
-		{
-			if(canLerp){
-				if (requiresKey && !hasKey){
-					//nothing yet?
-				} else {
-					StartCoroutine("LerpOpen");
-				}
-			}
-		}
 	}
 
 	public void UnlockDoor(){
@@ -58,7 +57,7 @@ public class DoubleDoorController : MonoBehaviour {
 	{
 		if(coll.gameObject.CompareTag("Player")){
 			count++;
-			if(canLerp){
+			if(canLerp && !(requiresKey && !hasKey)){
 				StartCoroutine("LerpOpen");
 			}
 		}
@@ -74,6 +73,11 @@ public class DoubleDoorController : MonoBehaviour {
 	private IEnumerator LerpOpen()
 	{ 
 		canLerp = false;
+		if (objectToSpawn!=null){
+			objectToSpawn.SetActive(true);
+			StartCoroutine("DelayForSound");
+		}
+		AudioSource.PlayClipAtPoint(openClip, transform.position, .75f);
 		for (float t=0; t<1f; t+=Time.smoothDeltaTime/1.25f){
 			door1.transform.position = temp = Vector3.Lerp(door1Init, finalPos1, t);
 			door2.transform.position = temp = Vector3.Lerp(door2Init, finalPos2, t);
@@ -87,6 +91,7 @@ public class DoubleDoorController : MonoBehaviour {
 	private IEnumerator LerpClosed()
 	{ 
 		canLerp = false;
+		AudioSource.PlayClipAtPoint(closeClip, transform.position, .75f);
 		for (float t=0; t<1f; t+=Time.smoothDeltaTime/1.25f){
 			door1.transform.position = temp = Vector3.Lerp(finalPos1, door1Init, t);
 			door2.transform.position = temp = Vector3.Lerp(finalPos2, door2Init, t);
@@ -95,6 +100,11 @@ public class DoubleDoorController : MonoBehaviour {
 		canLerp = true;
 		door1.transform.position = door1Init;
 		door2.transform.position = door2Init;
+	}
+
+	private IEnumerator DelayForSound(){
+		yield return new WaitForSeconds(stingerDelay);
+		AudioSource.PlayClipAtPoint(stingerClip, transform.position, 1f);
 	}
 
 }

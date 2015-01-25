@@ -23,6 +23,14 @@ public class Movement : MonoBehaviour
 	public float sprintSpeed;
 	public float moveSpeed;
 	public bool canSprint = true;
+	public enum state {WALKING, LADDER, AUTO, GUILOCK};
+	public state curState;
+	private Camera playerCam;
+	private bool canLerp;
+	private Vector3 temp;
+	private Quaternion tempQ;
+
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -33,13 +41,20 @@ public class Movement : MonoBehaviour
 		curSprint = maxSprint;
 		sprintSpeed = 1.4f * walkSpeed;
 		moveSpeed = walkSpeed;
+		curState = state.WALKING;
+		playerCam = gameObject.GetComponentInChildren<Camera>();
+		temp = new Vector3();
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
+		//cursor
+		Screen.showCursor = (curState == state.GUILOCK);
+		Screen.lockCursor = !(curState == state.GUILOCK);
+
 		//mouse click
-		if (Input.GetButtonDown("Fire1")){
+		if (Input.GetButtonDown("Fire1") && curState == state.WALKING){
 			RaycastHit hitInfo = new RaycastHit();
 			if (Physics.Raycast(Camera.main.ViewportPointToRay(new Vector3(.5f,.5f,0f)), out hitInfo, 2.5f)){
 				if (hitInfo.collider.gameObject.CompareTag("Interactable")){
@@ -54,79 +69,106 @@ public class Movement : MonoBehaviour
 		//Debug.Log (rot.eulerAngles);
 		
 		//transform.rotation = rot;
+		if(curState == state.WALKING){
+			mouseX = Input.GetAxis ("Mouse X");
 
-		mouseX = Input.GetAxis ("Mouse X");
+			transform.Rotate(Vector3.up, mouseX*mouseSens);
 
-		transform.Rotate(Vector3.up, mouseX*mouseSens);
+			mouseY = Input.GetAxis ("Mouse Y");
 
-		mouseY = Input.GetAxis ("Mouse Y");
+			//playerCam.transform.Rotate (Vector3.right, -.5f*mouseY*mouseSens);
 
-		gameObject.GetComponentInChildren<Camera>().transform.Rotate (Vector3.right, -.5f*mouseY*mouseSens);
+			Vector3 goalCamRot = playerCam.transform.localEulerAngles;
+			float amountToMoveY = -.5f*mouseY*mouseSens;
+			goalCamRot.x += amountToMoveY;
+			if (goalCamRot.x < 265f && goalCamRot.x > 180f){goalCamRot.x = 265.0f;}
+			else if (goalCamRot.x > 80f && goalCamRot.x< 180f){goalCamRot.x = 80.0f;}
+			playerCam.transform.localEulerAngles = goalCamRot;
 
-		isSprinting = Input.GetButton("Sprint") && curSprint > 0 && rb.velocity.magnitude > 0;
-		
+			isSprinting = Input.GetButton("Sprint") && curSprint > 0 && rb.velocity.magnitude > 0;
+		} else if (curState == state.LADDER){
+			Vector3 goalCamRot = playerCam.transform.localEulerAngles;
+			float amountToMoveY = -.5f*mouseY*mouseSens;
+			goalCamRot.x += amountToMoveY;
+			if (goalCamRot.x < 315f && goalCamRot.x > 180f){goalCamRot.x = 315.0f;}
+			else if (goalCamRot.x > 45f && goalCamRot.x< 180f){goalCamRot.x = 45.0f;}
+			playerCam.transform.localEulerAngles = goalCamRot;
+		}
 	}
 
 	void FixedUpdate()
 	{
-		if(isSprinting && canSprint)
-		{
-			curSprint = Mathf.Max (curSprint - Time.fixedDeltaTime, 0);
-			if(curSprint > 0f)
+		if(curState == state.WALKING){
+			if(isSprinting && canSprint)
 			{
-				moveSpeed = sprintSpeed;
+				curSprint = Mathf.Max (curSprint - Time.fixedDeltaTime, 0);
+				if(curSprint > 0f)
+				{
+					moveSpeed = sprintSpeed;
+				}
+				else
+				{
+					moveSpeed = walkSpeed;
+					StartCoroutine("DelaySprint");
+				}
+
 			}
 			else
 			{
 				moveSpeed = walkSpeed;
-				StartCoroutine("DelaySprint");
+				curSprint = Mathf.Min(curSprint +  Time.fixedDeltaTime * .5f, maxSprint);
 			}
 
-		}
-		else
-		{
-			moveSpeed = walkSpeed;
-			curSprint = Mathf.Min(curSprint +  Time.fixedDeltaTime * .5f, maxSprint);
-		}
-
-		if(!isFalling){
-			vel.x = Input.GetAxisRaw ("Horizontal");
-			vel.z = Input.GetAxisRaw ("Vertical");
-			vel.Normalize ();
-			vel *= moveSpeed;
-			
-			if(Input.GetButton("Jump")){
-				vel.y = 5f;
-				lastXVel = vel.x;
-				lastZVel = vel.z;
+			if(!isFalling){
+				vel.x = Input.GetAxisRaw ("Horizontal");
+				vel.z = Input.GetAxisRaw ("Vertical");
+				vel.Normalize ();
+				vel *= moveSpeed;
+				
+				if(Input.GetButton("Jump")){
+					vel.y = 5f;
+					lastXVel = vel.x;
+					lastZVel = vel.z;
+				} else {
+					vel.y = 0f;
+				}
+				rb.velocity = transform.TransformDirection (vel);
 			} else {
-				vel.y = 0f;
+				vel = transform.TransformDirection(new Vector3(lastXVel*moveSpeed,0f,lastZVel*moveSpeed));
+				vel.y = rb.velocity.y-19.6f*Time.fixedDeltaTime;
+				rb.velocity = vel;
 			}
-			rb.velocity = transform.TransformDirection (vel);
-		} else {
-			vel = transform.TransformDirection(new Vector3(lastXVel*moveSpeed,0f,lastZVel*moveSpeed));
-			vel.y = rb.velocity.y-19.6f*Time.fixedDeltaTime;
+
+			isFalling = true;
+			RaycastHit hitInfo = new RaycastHit();
+			if (onStairs){
+				isFalling = false;
+			} else if (Physics.Raycast (transform.position, Vector3.down, out hitInfo, transform.localScale.y*playerColl.height/2.0f + .25f)){
+				if (!hitInfo.collider.isTrigger){
+					isFalling = false;
+				}
+			}
+		}
+		else if (curState == state.LADDER)
+		{
+			vel.x = vel.z = 0;
+			vel.y = Input.GetAxisRaw("Vertical");
+			vel *= walkSpeed/2.0f;
 			rb.velocity = vel;
 		}
-
-		isFalling = true;
-		RaycastHit hitInfo = new RaycastHit();
-		if (onStairs){
-			isFalling = false;
-		} else if (Physics.Raycast (transform.position, Vector3.down, out hitInfo, transform.localScale.y*playerColl.height/2.0f + .25f)){
-			if (!hitInfo.collider.isTrigger){
-				isFalling = false;
-			}
+		else if (curState == state.GUILOCK){
+			vel = Vector3.zero;
+			rb.velocity = vel;
 		}
 
 	}
 
 	public void EnterGUIState(){
-
+		curState = state.GUILOCK;
 	}
 
 	public void ExitGUIState(){
-
+		curState = state.WALKING;
 	}
 
 	private IEnumerator Jump(){
@@ -144,15 +186,63 @@ public class Movement : MonoBehaviour
 		canSprint = true;
 	}
 
+	private void OnCollisionExit(Collision coll){
+		if(coll.gameObject.CompareTag("Stairs")){
+			onStairs = false;
+		}
+	}
+
 	private void OnCollisionEnter(Collision coll){
 		if(coll.gameObject.CompareTag("Stairs")){
 			onStairs = true;
 		}
 	}
 
-	private void OnCollisionExit(Collision coll){
-		if(coll.gameObject.CompareTag("Stairs")){
-			onStairs = false;
+	private void OnTriggerEnter(Collider coll){
+		if(coll.gameObject.CompareTag("Ladder"))
+		{
+			if(curState == state.WALKING)
+			{
+				StartCoroutine(MountLadder(coll, transform));
+			}
+			else if(curState == state.LADDER)
+			{
+				StartCoroutine(DismountLadder(coll, transform));
+			}
 		}
+	}
+
+	private IEnumerator DismountLadder(Collider coll, Transform playerInit){
+		Transform dest = coll.gameObject.GetComponentsInChildren<Transform>()[1];
+		for (float t=0; t<1f; t+=Time.smoothDeltaTime){
+			transform.position = temp = Vector3.Lerp(playerInit.position, dest.position, t);
+			transform.rotation = tempQ = Quaternion.Lerp (playerInit.rotation, dest.rotation, t);
+			yield return null;
+		}
+		transform.position = dest.position;
+		transform.rotation = dest.rotation;
+		curState = state.WALKING;
+	}
+
+	private IEnumerator MountLadder(Collider coll, Transform playerInit){
+		curState = state.LADDER;
+		Transform dest = coll.gameObject.transform;
+		for (float t=0; t<1f; t+=Time.smoothDeltaTime){
+			transform.position = temp = Vector3.Lerp(playerInit.position, dest.position, t);
+			transform.rotation = tempQ = Quaternion.Lerp (playerInit.rotation,dest.rotation, t);
+			yield return null;
+		}
+		Debug.Log("Done");
+		transform.position = dest.position;
+		transform.rotation = dest.rotation;
+	}
+}
+
+public GameObject[] shitToTurnOn;
+
+
+playerjkasdhkash(){
+	foreach (GameObject obj in shitToTurnOn){
+		obj.SetActive(true);
 	}
 }

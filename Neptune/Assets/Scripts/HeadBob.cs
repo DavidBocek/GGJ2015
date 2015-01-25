@@ -16,7 +16,11 @@ public class HeadBob : MonoBehaviour {
 		canLerp = true;
 	}
 	
-	void Update () { 
+	void Update () {
+		if (movementScr.curState == Movement.state.GUILOCK){
+			return;
+		}
+
 		actuallySprinting = movementScr.isSprinting && movementScr.canSprint;
 		bobbingSpeed = actuallySprinting ? .3f : .18f;
 
