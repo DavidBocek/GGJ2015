@@ -238,11 +238,11 @@ public class Movement : MonoBehaviour
 	}
 }
 
-public GameObject[] shitToTurnOn;
+/*public GameObject[] shitToTurnOn;
 
 
 playerjkasdhkash(){
 	foreach (GameObject obj in shitToTurnOn){
 		obj.SetActive(true);
 	}
-}
+} */

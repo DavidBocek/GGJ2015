@@ -10,10 +10,13 @@ public class HeadBob : MonoBehaviour {
 	private Movement movementScr;
 	private bool canLerp;
 	private bool actuallySprinting;
+	private AudioSource myAudSrc;
+	public AudioClip[] footsteps;
 
 	void Start(){
 		movementScr = GetComponentInParent<Movement>();
 		canLerp = true;
+		myAudSrc = GetComponent<AudioSource>();
 	}
 	
 	void Update () {
@@ -22,7 +25,7 @@ public class HeadBob : MonoBehaviour {
 		}
 
 		actuallySprinting = movementScr.isSprinting && movementScr.canSprint;
-		bobbingSpeed = actuallySprinting ? .3f : .18f;
+		bobbingSpeed = actuallySprinting ? .25f : .18f;
 
 		if (actuallySprinting && canLerp && gameObject.camera.fov!=70f){
 			StartCoroutine("lerpOut",gameObject.camera.fov);
@@ -54,7 +57,13 @@ public class HeadBob : MonoBehaviour {
 		} 
 		else { 
 			//transform.localPosition.y = midpoint; 
-		} 
+		}
+
+		if(Mathf.Abs(waveslice + 2) < .01)
+		{
+			//myAudSrc.clip = footsteps[Random.Range (0, footsteps.Length)];
+			myAudSrc.PlayOneShot(footsteps[Random.Range (0, footsteps.Length)]);
+		}
 	}
 
 	private IEnumerator lerpOut(float curFOV){

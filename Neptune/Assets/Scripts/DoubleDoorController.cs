@@ -17,6 +17,7 @@ public class DoubleDoorController : MonoBehaviour {
 	private Vector3 temp;
 	private int count = 0;
 	private bool hasKey = false;
+	private bool stingPlayed = false;
 
 	// Use this for initialization
 	void Start () 
@@ -73,7 +74,7 @@ public class DoubleDoorController : MonoBehaviour {
 	private IEnumerator LerpOpen()
 	{ 
 		canLerp = false;
-		if (objectToSpawn!=null){
+		if (objectToSpawn!=null && !stingPlayed){
 			objectToSpawn.SetActive(true);
 			StartCoroutine("DelayForSound");
 		}
@@ -105,6 +106,7 @@ public class DoubleDoorController : MonoBehaviour {
 	private IEnumerator DelayForSound(){
 		yield return new WaitForSeconds(stingerDelay);
 		AudioSource.PlayClipAtPoint(stingerClip, transform.position, 1f);
+		stingPlayed = true;
 	}
 
 }
