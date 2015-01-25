@@ -3,7 +3,6 @@ using System.Collections;
 
 public class Movement : MonoBehaviour 
 {
-	
 	private Rigidbody rb;
 	Vector3 vel, mouseLoc;
 	public Object burret;
@@ -53,10 +52,8 @@ public class Movement : MonoBehaviour
 		mouseY = Input.GetAxis ("Mouse Y");
 
 		gameObject.GetComponentInChildren<Camera>().transform.Rotate (Vector3.right, -.5f*mouseY*mouseSens);
-		
-		isSprinting = Input.GetButton("Sprint") && curSprint > 0 && rb.velocity.magnitude > 0;
 
-		Debug.Log (curSprint + " " + isSprinting);
+		isSprinting = Input.GetButton("Sprint") && curSprint > 0 && rb.velocity.magnitude > 0;
 		
 	}
 
@@ -74,9 +71,11 @@ public class Movement : MonoBehaviour
 				moveSpeed = walkSpeed;
 				StartCoroutine("DelaySprint");
 			}
+
 		}
 		else
 		{
+			moveSpeed = walkSpeed;
 			curSprint = Mathf.Min(curSprint +  Time.fixedDeltaTime * .5f, maxSprint);
 		}
 
@@ -99,8 +98,16 @@ public class Movement : MonoBehaviour
 			vel.y = rb.velocity.y-19.6f*Time.fixedDeltaTime;
 			rb.velocity = vel;
 		}
-		
-		isFalling = !Physics.Raycast (transform.position, Vector3.down, playerColl.height/2.0f + .25f) && !onStairs;
+
+		isFalling = true;
+		RaycastHit hitInfo = new RaycastHit();
+		if (onStairs){
+			isFalling = false;
+		} else if (Physics.Raycast (transform.position, Vector3.down, out hitInfo, transform.localScale.y*playerColl.height/2.0f + .25f)){
+			if (!hitInfo.collider.isTrigger){
+				isFalling = false;
+			}
+		}
 
 	}
 

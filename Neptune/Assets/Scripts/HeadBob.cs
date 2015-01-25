@@ -25,7 +25,7 @@ public class HeadBob : MonoBehaviour {
 		} else if (!actuallySprinting && canLerp && gameObject.camera.fov!=60f){
 			StartCoroutine("lerpIn",gameObject.camera.fov);
 		}
-		
+
 		float waveslice = 0.0f; 
 		float horizontal = Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.D) ? 0f : Input.GetAxis("Horizontal"); 
 		float vertical = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.S) ? 0f : Input.GetAxis("Vertical"); 
