@@ -3,21 +3,27 @@ using System.Collections;
 
 public class Movement : MonoBehaviour 
 {
-	public float moveSpeed = 1.0f;
+
 	private Rigidbody rb;
 	Vector3 vel, mouseLoc;
 	public Object burret;
 	public Transform muzzle;
 	public float jumpForce = 1.0f;
 	private float mouseX, mouseY, mouseSens;
-	private bool isJumping = false;
-	public bool isFalling;
 	public float lastXVel;
 	public float lastZVel;
 	private CapsuleCollider playerColl;
+	private bool isJumping = false;
+	public bool isFalling;
+	public bool isSprinting;
 	private bool onStairs;
 	private bool groundRayBool;
-
+	public float maxSprint = 3.0f;
+	private float curSprint;
+	public float walkSpeed = 5.0f;
+	public float sprintSpeed;
+	public float moveSpeed;
+	public bool canSprint = true;
 	// Use this for initialization
 	void Start () 
 	{
@@ -25,6 +31,9 @@ public class Movement : MonoBehaviour
 		rb = GetComponent<Rigidbody> ();
 		mouseSens = 2.0f;
 		playerColl = GetComponent<CapsuleCollider>();
+		curSprint = maxSprint;
+		sprintSpeed = 1.4f * walkSpeed;
+		moveSpeed = walkSpeed;
 	}
 	
 	// Update is called once per frame
@@ -45,54 +54,52 @@ public class Movement : MonoBehaviour
 
 		gameObject.GetComponentInChildren<Camera>().transform.Rotate (Vector3.right, -.5f*mouseY*mouseSens);
 
+		isSprinting = Input.GetButton("Sprint") && curSprint > 0 && rb.velocity.magnitude > 0;
+
+		Debug.Log (curSprint + " " + isSprinting);
+
+
 	}
 
 	void FixedUpdate()
 	{
-		/*if(!isFalling){
-			vel.x = Input.GetAxisRaw ("Horizontal");
-			vel.z = Input.GetAxisRaw ("Vertical");
-			vel.Normalize ();
-			vel *= moveSpeed;
-		} else {
-			vel.x = transform.InverseTransformDirection(rb.velocity).x;
-			vel.z = transform.InverseTransformDirection(rb.velocity).z;
+		if(isSprinting && canSprint)
+		{
+			curSprint = Mathf.Max (curSprint - Time.fixedDeltaTime, 0);
+			if(curSprint > 0f)
+			{
+				moveSpeed = sprintSpeed;
+			}
+			else
+			{
+				moveSpeed = walkSpeed;
+				StartCoroutine("DelaySprint");
+			}
 		}
-
-		vel.y = Input.GetButton("Jump") && !isFalling ? 5f : rb.velocity.y-19.6f*Time.deltaTime;
-
-		if(!isFalling && !Input.GetButton("Jump")){
-			vel.y=0;
+		else
+		{
+			curSprint = Mathf.Min(curSprint +  Time.fixedDeltaTime * .5f, maxSprint);
 		}
-		Debug.Log ("vel: " + vel + " transformdir: " + transform.TransformDirection (vel));
-		rb.velocity = transform.TransformDirection (vel);
-
-		isFalling = Physics.Raycast (transform.position, Vector3.down, .5f + .05f) ? false : true; */
-	
 
 		if(!isFalling){
 			vel.x = Input.GetAxisRaw ("Horizontal");
 			vel.z = Input.GetAxisRaw ("Vertical");
 			vel.Normalize ();
 			vel *= moveSpeed;
-
+			
 			if(Input.GetButton("Jump")){
 				vel.y = 5f;
-				lastXVel = rb.velocity.x;
-				lastZVel = rb.velocity.z;
+				lastXVel = vel.x;
+				lastZVel = vel.z;
 			} else {
 				vel.y = 0f;
 			}
 			rb.velocity = transform.TransformDirection (vel);
 		} else {
-			vel.x = lastXVel;
-			vel.z = lastZVel;
+			vel = transform.TransformDirection(new Vector3(lastXVel*moveSpeed,0f,lastZVel*moveSpeed));
 			vel.y = rb.velocity.y-19.6f*Time.fixedDeltaTime;
 			rb.velocity = vel;
 		}
-
-		Debug.Log (isFalling + " " + onStairs);
-
 		
 		isFalling = !Physics.Raycast (transform.position, Vector3.down, playerColl.height/2.0f + .25f) && !onStairs;
 
@@ -105,6 +112,12 @@ public class Movement : MonoBehaviour
 			yield return null;
 		}
 		isJumping = false;
+	}
+
+	private IEnumerator DelaySprint(){
+		canSprint = false;
+		yield return new WaitForSeconds(2.0f);
+		canSprint = true;
 	}
 
 	private void OnCollisionEnter(Collision coll){
