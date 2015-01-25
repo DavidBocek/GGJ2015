@@ -56,9 +56,6 @@ public class Movement : MonoBehaviour
 
 		isSprinting = Input.GetButton("Sprint") && curSprint > 0 && rb.velocity.magnitude > 0;
 
-		Debug.Log (curSprint + " " + isSprinting);
-
-
 	}
 
 	void FixedUpdate()
@@ -75,9 +72,11 @@ public class Movement : MonoBehaviour
 				moveSpeed = walkSpeed;
 				StartCoroutine("DelaySprint");
 			}
+
 		}
 		else
 		{
+			moveSpeed = walkSpeed;
 			curSprint = Mathf.Min(curSprint +  Time.fixedDeltaTime * .5f, maxSprint);
 		}
 
@@ -101,7 +100,7 @@ public class Movement : MonoBehaviour
 			rb.velocity = vel;
 		}
 		
-		isFalling = !Physics.Raycast (transform.position, Vector3.down, playerColl.height/2.0f + .25f) && !onStairs;
+		isFalling = !Physics.Raycast (transform.position, Vector3.down, transform.localScale.y*playerColl.height/2.0f + .25f) && !onStairs;
 
 	}
 
