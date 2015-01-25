@@ -10,7 +10,7 @@ GameObject:
   - 4: {fileID: 400000}
   - 33: {fileID: 3300000}
   - 23: {fileID: 2300000}
-  - 64: {fileID: 6400000}
+  - 65: {fileID: 6513994}
   m_Layer: 0
   m_Name: Wall_round_02
   m_TagString: Untagged
@@ -25,7 +25,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100000}
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -26, y: 0, z: 0}
+  m_LocalPosition: {x: 14, y: 0, z: -2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -57,8 +57,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100000}
   m_Mesh: {fileID: 4300000, guid: 8b84d38efd24c54429847fc6305f6fb2, type: 3}
---- !u!64 &6400000
-MeshCollider:
+--- !u!65 &6513994
+BoxCollider:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -67,9 +67,8 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_SmoothSphereCollisions: 0
-  m_Convex: 0
-  m_Mesh: {fileID: 4300000, guid: 8b84d38efd24c54429847fc6305f6fb2, type: 3}
+  m_Size: {x: 4, y: 4.81988335, z: 1.39603686}
+  m_Center: {x: 0, y: 2, z: -.168772906}
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1
