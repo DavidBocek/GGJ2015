@@ -6,11 +6,13 @@ public class DoubleDoorController : MonoBehaviour {
 	public GameObject door1;
 	public GameObject door2;
 	public Transform door1Final, door2Final;
+	public bool requiresKey = false;
 	private Vector3 door1Init, door2Init;
 	private Vector3 finalPos1, finalPos2;
 	private bool canLerp;
 	private Vector3 temp;
 	private int count = 0;
+	private bool hasKey = false;
 
 	// Use this for initialization
 	void Start () 
@@ -25,19 +27,31 @@ public class DoubleDoorController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
+
 		if(Mathf.Abs(door1.transform.position.y - finalPos1.y) < .05 && count == 0)
 		{
 			if(canLerp){
-				StartCoroutine("LerpClosed");
+				if (requiresKey && !hasKey){
+					//nothing yet?
+				} else {
+					StartCoroutine("LerpClosed");
+				}
 			}
 		}
 		if(Mathf.Abs(door1.transform.position.y - door1Init.y) < .05 && count > 0)
 		{
 			if(canLerp){
-				StartCoroutine("LerpOpen");
+				if (requiresKey && !hasKey){
+					//nothing yet?
+				} else {
+					StartCoroutine("LerpOpen");
+				}
 			}
 		}
-		//Debug.Log (count);
+	}
+
+	public void UnlockDoor(){
+		hasKey = true;
 	}
 
 	private void OnTriggerEnter(Collider coll)

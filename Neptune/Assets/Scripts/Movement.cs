@@ -38,6 +38,16 @@ public class Movement : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
+		//mouse click
+		if (Input.GetButtonDown("Fire1")){
+			RaycastHit hitInfo = new RaycastHit();
+			if (Physics.Raycast(Camera.main.ViewportPointToRay(new Vector3(.5f,.5f,0f)), out hitInfo, 2.5f)){
+				if (hitInfo.collider.gameObject.CompareTag("Interactable")){
+					hitInfo.collider.gameObject.SendMessage("OnPlayerClicked",SendMessageOptions.DontRequireReceiver);
+				}
+			}
+		}
+
 		//mouseLoc = Camera.main.ScreenToWorldPoint (new Vector3(Input.mousePosition.x, Input.mousePosition.y, 20));
 		//Quaternion rot = Quaternion.LookRotation (new Vector3 (mouseLoc.x - transform.position.x, 0, mouseLoc.z - transform.position.z));
 		
@@ -108,6 +118,14 @@ public class Movement : MonoBehaviour
 				isFalling = false;
 			}
 		}
+
+	}
+
+	public void EnterGUIState(){
+
+	}
+
+	public void ExitGUIState(){
 
 	}
 
